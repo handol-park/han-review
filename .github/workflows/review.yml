@@ -122,7 +122,8 @@ jobs:
             (security/reliability Critical ⇒ block).
             Render ONE markdown report: a section per seated angle (skipped angles as
             `_skipped — no governed surface changed_`, clean ones as `_no findings_`),
-            then the verdict line and `_Reviewed ${{ github.event.issue.number }} @ HEAD._`.
+            then the verdict line and a footer `_Reviewed <sha>._` where <sha> is the
+            output of `git rev-parse --short HEAD`.
             Do NOT post anything and do NOT pass --comment. Put the complete markdown
             in the `review_markdown` field of your structured output.
           claude_args: |
