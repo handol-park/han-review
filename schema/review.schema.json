@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ConsolidatedReview",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["review_markdown"],
+  "properties": {
+    "review_markdown": {
+      "type": "string",
+      "description": "The complete consolidated, severity-ranked han-review report ending in a verdict line."
+    }
+  }
+}

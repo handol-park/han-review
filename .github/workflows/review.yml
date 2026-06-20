@@ -1,0 +1,194 @@
+# han-review — reusable PR-review workflow.
+#
+# Target repos call this from a tiny stub (see templates/caller.yml) on
+# `issue_comment`. On-demand only: a reviewer comments one of
+#   @claude review   |   @codex review   |   @gemini-cli /review
+# on a PR. This workflow gates on mention + author + non-draft, loads the
+# han-review angle specs + orchestrator from THIS repo at `inputs.han_review_ref`,
+# runs the selected backend in REPORT mode to produce ONE consolidated markdown
+# review, and posts it as a single comment. The agent never self-posts.
+name: han-review
+
+on:
+  workflow_call:
+    inputs:
+      han_review_ref:
+        description: Ref of handol-park/han-review to load specs + orchestrator from.
+        type: string
+        default: v1
+    secrets:
+      CLAUDE_CODE_OAUTH_TOKEN:
+        required: false
+      OPENAI_API_KEY:
+        required: false
+      GEMINI_API_KEY:
+        required: false
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: read
+  id-token: write
+  actions: read
+
+jobs:
+  gate:
+    runs-on: ubuntu-latest
+    # Only PR comments from trusted authors.
+    if: >-
+      ${{ github.event.issue.pull_request &&
+          contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.comment.author_association) }}
+    outputs:
+      run: ${{ steps.parse.outputs.run }}
+      backend: ${{ steps.parse.outputs.backend }}
+      pr: ${{ github.event.issue.number }}
+    steps:
+      - id: parse
+        env:
+          BODY: ${{ github.event.comment.body }}
+        run: |
+          backend=""
+          case "$BODY" in
+            *"@claude review"*)      backend=claude ;;
+            *"@codex review"*)       backend=codex ;;
+            *"@gemini-cli /review"*) backend=gemini ;;
+          esac
+          if [ -n "$backend" ]; then
+            { echo "run=true"; echo "backend=$backend"; } >> "$GITHUB_OUTPUT"
+          else
+            echo "run=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  review:
+    needs: gate
+    if: ${{ needs.gate.outputs.run == 'true' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    concurrency:
+      group: han-review-${{ github.repository }}-${{ needs.gate.outputs.pr }}
+      cancel-in-progress: true
+    env:
+      GH_TOKEN: ${{ github.token }}
+      PR: ${{ needs.gate.outputs.pr }}
+    steps:
+      - name: Acknowledge with a reaction
+        run: |
+          gh api -X POST "repos/${{ github.repository }}/issues/comments/${{ github.event.comment.id }}/reactions" \
+            -f content=eyes >/dev/null 2>&1 || true
+
+      - name: Guard — skip draft PRs
+        id: guard
+        run: |
+          draft=$(gh pr view "$PR" --repo "${{ github.repository }}" --json isDraft -q .isDraft)
+          echo "skip=$([ "$draft" = "true" ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
+
+      - name: Checkout the PR head
+        if: ${{ steps.guard.outputs.skip == 'false' }}
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+        with:
+          repository: ${{ github.repository }}
+          fetch-depth: 0
+
+      - name: Switch to the PR branch
+        if: ${{ steps.guard.outputs.skip == 'false' }}
+        run: gh pr checkout "$PR" --repo "${{ github.repository }}"
+
+      - name: Load han-review specs + orchestrator
+        if: ${{ steps.guard.outputs.skip == 'false' }}
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+        with:
+          repository: handol-park/han-review
+          ref: ${{ inputs.han_review_ref }}
+          path: .han-review
+
+      # --- Claude backend ---
+      - name: Review (Claude)
+        id: claude
+        if: ${{ steps.guard.outputs.skip == 'false' && needs.gate.outputs.backend == 'claude' }}
+        uses: anthropics/claude-code-action@806af32823ef69c8ef357086c573a902af641307 # v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          additional_permissions: |
+            actions: read
+          prompt: |
+            Run the han-review consolidated reviewer for ${{ github.repository }} PR #${{ env.PR }}.
+            Execute the orchestrator at `.han-review/SKILL.md` in REPORT mode:
+            read the diff (`gh pr diff ${{ env.PR }}`), seat only the applicable
+            angles from `.han-review/angles/`, run EACH applicable angle in its own
+            Task subagent (isolated context) producing findings per
+            `.han-review/schema/finding.schema.json`, then synthesize per SKILL.md
+            (dedupe, adversarial cross-check, resolve conflicts by the value ladder,
+            rank Critical→Important→Polish) and compute the verdict
+            (security/reliability Critical ⇒ block).
+            Render ONE markdown report: a section per seated angle (skipped angles as
+            `_skipped — no governed surface changed_`, clean ones as `_no findings_`),
+            then the verdict line and `_Reviewed ${{ github.event.issue.number }} @ HEAD._`.
+            Do NOT post anything and do NOT pass --comment. Put the complete markdown
+            in the `review_markdown` field of your structured output.
+          claude_args: |
+            --model claude-sonnet-4-6
+            --allowedTools "Task,Read,Grep,Glob,TodoWrite,Bash(gh pr diff:*),Bash(gh pr view:*),Bash(gh pr list:*),Bash(gh api:*),Bash(git diff:*),Bash(git log:*)"
+            --json-schema '{"type":"object","additionalProperties":false,"required":["review_markdown"],"properties":{"review_markdown":{"type":"string"}}}'
+      - name: Extract Claude review
+        if: ${{ steps.guard.outputs.skip == 'false' && needs.gate.outputs.backend == 'claude' && steps.claude.outputs.structured_output != '' }}
+        env:
+          REVIEW_BODY: ${{ fromJSON(steps.claude.outputs.structured_output).review_markdown }}
+        run: printf '%s' "$REVIEW_BODY" > "$RUNNER_TEMP/review.md"
+
+      # --- Codex backend ---
+      - name: Review (Codex)
+        id: codex
+        if: ${{ steps.guard.outputs.skip == 'false' && needs.gate.outputs.backend == 'codex' }}
+        uses: openai/codex-action@v1
+        with:
+          openai-api-key: ${{ secrets.OPENAI_API_KEY }}
+          sandbox: read-only
+          output-schema-file: .han-review/schema/review.schema.json
+          output-file: ${{ runner.temp }}/codex-out.json
+          prompt: |
+            Run the han-review consolidated reviewer for ${{ github.repository }} PR #${{ env.PR }}.
+            Execute the orchestrator at `.han-review/SKILL.md` in REPORT mode: read the
+            diff (`gh pr diff ${{ env.PR }}`), seat only applicable angles from
+            `.han-review/angles/`, run each in its own context producing findings per
+            `.han-review/schema/finding.schema.json`, synthesize per SKILL.md, compute
+            the verdict (security/reliability Critical ⇒ block), and render ONE markdown
+            report ending in the verdict line. Do NOT post; do NOT pass --comment.
+            Return the complete markdown in the `review_markdown` field.
+      - name: Extract Codex review
+        if: ${{ steps.guard.outputs.skip == 'false' && needs.gate.outputs.backend == 'codex' }}
+        run: |
+          python3 -c "import json,os,sys; d=json.load(open(os.environ['F'])); open(os.environ['O'],'w').write(d['review_markdown'])" \
+            || cp "$F" "$O"
+        env:
+          F: ${{ runner.temp }}/codex-out.json
+          O: ${{ runner.temp }}/review.md
+
+      # --- Gemini backend (no structured output: summary IS the markdown) ---
+      - name: Review (Gemini)
+        id: gemini
+        if: ${{ steps.guard.outputs.skip == 'false' && needs.gate.outputs.backend == 'gemini' }}
+        uses: google-github-actions/run-gemini-cli@v0.1.22
+        with:
+          gemini_api_key: ${{ secrets.GEMINI_API_KEY }}
+          prompt: |
+            Run the han-review consolidated reviewer for ${{ github.repository }} PR #${{ env.PR }}.
+            Execute the orchestrator at `.han-review/SKILL.md` in REPORT mode: read the
+            diff (`gh pr diff ${{ env.PR }}`), seat only applicable angles from
+            `.han-review/angles/`, run each angle, synthesize per SKILL.md, compute the
+            verdict (security/reliability Critical ⇒ block). Output ONLY the complete
+            consolidated markdown report (no preamble) as your final message.
+      - name: Extract Gemini review
+        if: ${{ steps.guard.outputs.skip == 'false' && needs.gate.outputs.backend == 'gemini' }}
+        env:
+          REVIEW_BODY: ${{ steps.gemini.outputs.summary }}
+        run: printf '%s' "$REVIEW_BODY" > "$RUNNER_TEMP/review.md"
+
+      # --- Post one consolidated comment ---
+      - name: Post consolidated review
+        if: ${{ steps.guard.outputs.skip == 'false' }}
+        run: |
+          if [ ! -s "$RUNNER_TEMP/review.md" ]; then
+            echo "No review produced (backend returned nothing)." >&2
+            exit 1
+          fi
+          gh pr comment "$PR" --repo "${{ github.repository }}" --body-file "$RUNNER_TEMP/review.md"
