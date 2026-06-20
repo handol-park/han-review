@@ -30,8 +30,10 @@ Simplicity > Efficiency. Authoritative definitions live in the consuming repo's
    `angles/<angle>.md` and (b) the diff + changed-file list. It returns an
    `AngleResult` per `schema/finding.schema.json`.
    - **Claude Code:** spawn one `Task` subagent per angle (in parallel).
-   - **Codex:** run one `codex exec` process per angle with
-     `--output-schema schema/finding.schema.json` (parallel; fresh context each).
+   - **Codex:** run one `codex exec` process per angle, **stdin closed**, e.g.
+     `codex exec "<prompt>" --output-schema schema/finding.schema.json -o out.json -s read-only </dev/null`
+     (parallel; fresh context each). Closing stdin (`</dev/null`) is required —
+     `codex exec` blocks waiting on stdin otherwise.
    An angle whose surface is untouched returns `applicable:false` and is dropped.
 
 4. **Synthesize (single context).**

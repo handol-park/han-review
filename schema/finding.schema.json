@@ -2,27 +2,15 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://github.com/handol-park/han-review/schema/finding.schema.json",
   "title": "AngleResult",
-  "description": "Result returned by one han-review angle agent.",
+  "description": "Result returned by one han-review angle agent. Strict-mode compatible (all properties required, additionalProperties:false) so it works with Codex --output-schema and Claude --json-schema. The synthesis stage tracks 'refuted' in memory; it is intentionally NOT part of the angle output contract.",
   "type": "object",
   "additionalProperties": false,
   "required": ["angle", "applicable", "findings", "summary"],
   "properties": {
-    "angle": {
-      "type": "string",
-      "description": "Angle id, e.g. 'security'."
-    },
-    "applicable": {
-      "type": "boolean",
-      "description": "false when the diff touches nothing in this angle's scope (self-skip)."
-    },
-    "findings": {
-      "type": "array",
-      "items": { "$ref": "#/$defs/finding" }
-    },
-    "summary": {
-      "type": "string",
-      "description": "One-line stance for this angle."
-    }
+    "angle": { "type": "string", "description": "Angle id, e.g. 'security'." },
+    "applicable": { "type": "boolean", "description": "false when the diff touches nothing in this angle's scope (self-skip)." },
+    "findings": { "type": "array", "items": { "$ref": "#/$defs/finding" } },
+    "summary": { "type": "string", "description": "One-line stance for this angle." }
   },
   "$defs": {
     "finding": {
@@ -31,13 +19,12 @@
       "required": ["path", "line", "severity", "stance", "title", "detail", "evidence"],
       "properties": {
         "path": { "type": "string", "description": "File path relative to repo root." },
-        "line": { "type": "integer", "minimum": 0, "description": "Line in the new file; 0 if not line-specific." },
+        "line": { "type": "integer", "description": "Line in the new file; 0 if not line-specific." },
         "severity": { "enum": ["critical", "important", "polish"] },
         "stance": { "enum": ["block", "concern", "ok"] },
         "title": { "type": "string", "description": "One-line headline." },
         "detail": { "type": "string", "description": "What's wrong and why it matters." },
-        "evidence": { "type": "string", "description": "A falsifiable check (repro/test/command) OR a concrete suggested fix. Findings without evidence are dropped." },
-        "refuted": { "type": "boolean", "description": "Set by synthesis when an adversarial cross-check kills the finding." }
+        "evidence": { "type": "string", "description": "A falsifiable check (repro/test/command) OR a concrete suggested fix. Findings without evidence are dropped." }
       }
     }
   }
