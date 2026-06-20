@@ -65,11 +65,11 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     concurrency:
-      group: han-review-${{ github.repository }}-${{ needs.gate.outputs.pr }}
+      group: han-review-${{ github.repository }}-${{ github.event.issue.number }}
       cancel-in-progress: true
     env:
       GH_TOKEN: ${{ github.token }}
-      PR: ${{ needs.gate.outputs.pr }}
+      PR: ${{ github.event.issue.number }}
     steps:
       - name: Acknowledge with a reaction
         run: |
