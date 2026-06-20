@@ -34,3 +34,8 @@ carries only the ordering it needs to rank and resolve.
 ## Contract
 
 Each angle returns an `AngleResult` per [`schema/finding.schema.json`](schema/finding.schema.json).
+
+## Maintaining
+
+See [MAINTAINING.md](MAINTAINING.md) — architecture, how to change angles/schema/
+workflow, the release + versioning process, rollout, testing recipes, and gotchas.
