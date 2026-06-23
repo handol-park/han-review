@@ -12,7 +12,7 @@ verdict.
   [dotfiles](https://github.com/handol-park/dotfiles) (this repo is a submodule
   there).
 - **GitHub bot** — a reusable workflow other repos call from a tiny stub,
-  invoked on-demand by commenting `@claude review`, `@codex review`, or
+  invoked on-demand by commenting `@claude /han-review`, `@codex review`, or
   `@gemini-cli /review` on a PR.
 
 ## The panel

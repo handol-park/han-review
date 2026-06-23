@@ -84,7 +84,7 @@ han-review-init /path/to/repo        # writes .github/workflows/han-review.yml
 #     (or OPENAI_API_KEY / GEMINI_API_KEY)
 #  2) commit the stub to the DEFAULT branch via a PR (issue_comment workflows
 #     only fire from the default branch)
-#  3) on any PR, comment:  @claude review   (or @codex review / @gemini-cli /review)
+#  3) on any PR, comment:  @claude /han-review   (or @codex review / @gemini-cli /review)
 ```
 
 The host repo (`handol-park/han-review`) **must stay public** — reusable
@@ -110,7 +110,7 @@ cd han-review-sandbox
 han-review-init .                       # stub on main
 gh secret set CLAUDE_CODE_OAUTH_TOKEN   # paste token
 git add -A && git commit -m init && git push
-# open a PR with a planted vuln, then: gh pr comment <n> --body "@claude review"
+# open a PR with a planted vuln, then: gh pr comment <n> --body "@claude /han-review"
 gh run watch  # expect: gate+review succeed, one consolidated BLOCK comment
 gh repo delete handol-park/han-review-sandbox --yes   # clean up
 ```

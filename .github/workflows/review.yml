@@ -2,7 +2,7 @@
 #
 # Target repos call this from a tiny stub (see templates/caller.yml) on
 # `issue_comment`. On-demand only: a reviewer comments one of
-#   @claude review   |   @codex review   |   @gemini-cli /review
+#   @claude /han-review   |   @codex review   |   @gemini-cli /review
 # on a PR. This workflow gates on mention + author + non-draft, loads the
 # han-review angle specs + orchestrator from THIS repo at `inputs.han_review_ref`,
 # runs the selected backend in REPORT mode to produce ONE consolidated markdown
@@ -49,7 +49,7 @@ jobs:
         run: |
           backend=""
           case "$BODY" in
-            *"@claude review"*)      backend=claude ;;
+            *"@claude /han-review"*) backend=claude ;;
             *"@codex review"*)       backend=codex ;;
             *"@gemini-cli /review"*) backend=gemini ;;
           esac
