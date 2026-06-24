@@ -19,10 +19,15 @@ Simplicity > Efficiency. Authoritative definitions live in the consuming repo's
 1. **Resolve the target.** Use the PR number if given; else the current branch's
    PR (`gh pr view --json number -q .number`); else review the working diff.
    Capture the diff with `gh pr diff <n>` (or `git diff <base>...HEAD`).
-   For a PR target, also capture the current head SHA, review decision, merge
-   state, status checks, unresolved review-thread count, and the latest prior
-   `han-review` / disposition comments. This state is process context, not a
-   substitute for reviewing the diff.
+   For a PR target, also capture process state:
+   - `gh pr view <n> --json headRefOid,reviewDecision,mergeStateStatus,statusCheckRollup,comments,reviews`
+   - unresolved review threads via GraphQL:
+     `gh api graphql -f owner=<owner> -f repo=<repo> -F number=<n> -f query='query($owner:String!, $repo:String!, $number:Int!) { repository(owner:$owner, name:$repo) { pullRequest(number:$number) { reviewThreads(first:100) { nodes { isResolved } } } } }'`
+   Relevant prior review discussion includes GitHub reviews, review-thread
+   comments, top-level PR comments, author replies, maintainer decisions, and
+   prior automated or human review reports that discuss the same changed
+   surface, risk, or requested fix. Process state is context, not a substitute
+   for reviewing the diff.
 
 2. **Dispatch dynamically.** Read the diff and seat only the angles whose surface
    it touches. You MAY summon an ad-hoc lens the diff demands (DB migration →
@@ -79,14 +84,25 @@ Simplicity > Efficiency. Authoritative definitions live in the consuming repo's
      a door the baseline never opened, or defense-in-depth whose cost exceeds the
      boundary it protects, MUST NOT reach `concern` (Polish at most). This NEVER
      touches a **Critical**: a real Safety-floor issue outranks Simplicity.
-   - **Iteration hygiene:** if this is a re-review of the same PR, compare findings
-     against prior `han-review` reports and the author's disposition comments. Do
-     not re-raise an accepted tradeoff, declined fix, or already-addressed finding
-     unless the current diff or new evidence invalidates that disposition. When a
-     finding is repeated, say what changed since the prior round or mark it as a
-     carry-forward rather than presenting it as new. Do not treat `mergeStateStatus:
-     CLEAN` as review closure; clean mergeability, review approval, status checks,
-     resolved threads, and an up-to-date PR body are separate states.
+   - **Discussion consistency:** for PR targets, compare findings against relevant
+     prior review discussion. MUST NOT present a finding as new when the same
+     issue, tradeoff, or requested fix has already been discussed. Reflect the
+     current state of the discussion: accepted tradeoff, declined fix, agreed
+     follow-up, unresolved disagreement, claimed fix, or confirmed fix.
+
+     A claimed or agreed fix only closes the finding if the current diff confirms
+     it. If the concern is still valid, report it as carry-forward and explain the
+     current disagreement or remaining gap rather than re-litigating it from
+     scratch.
+
+     Critical / Safety-floor findings remain reportable until fixed or
+     invalidated. Prior agreement can change how they are framed, but it cannot
+     make a still-valid Critical disappear.
+
+     MUST NOT treat `mergeStateStatus: CLEAN` as review closure. Clean
+     mergeability, review approval, status checks, resolved threads, accepted
+     tradeoffs, unresolved disagreements, and an up-to-date PR body are separate
+     states.
    - Rank Critical → Important → Polish.
 
 5. **Verdict.**
@@ -94,16 +110,23 @@ Simplicity > Efficiency. Authoritative definitions live in the consuming repo's
      floor).
    - Else any Critical/Important ⇒ **concerns**.
    - Else ⇒ **ship it**.
+   Process state alone is not a code finding and does not change finding
+   severity. Use it to report whether the review process appears closed, not to
+   override the Critical / Important / Polish verdict rules.
 
 6. **Render ONE report** — a section per seated angle (skipped angles noted as
    `_skipped — no governed surface changed_`; clean angles as `_no findings_`),
    findings as `` - `path:line` — title (Severity) `` then the detail + evidence,
    ending with the verdict line and `_Reviewed <sha>._`. For PR targets, include a
-   short `Process state` note when relevant: stale PR body, missing checks,
-   unresolved threads, no approval, or remaining un-dispositioned concerns. This
-   note is not a code finding; it tells the caller what must be cleaned up before
-   the review process is closed.
+   short `Process state` note when review discussion or GitHub state indicates
+   unresolved disagreement, missing approval, missing checks, unresolved threads,
+   stale PR body, or un-dispositioned concerns. This note is not a code finding;
+   it explains what remains open in the review process.
 
 7. **Post (only in CI / when `--comment` is passed).** Write the report to a temp
-   file and `gh pr comment <n> --body-file`. Otherwise print it. The agent never
-   self-posts in any other path — the workflow owns the single post.
+   file and submit it as a GitHub review. Use
+   `gh pr review <n> --request-changes --body-file <file>` for **block** or
+   **concerns** verdicts. Use `gh pr review <n> --approve --body-file <file>` for
+   **ship it** verdicts, because that verdict means there are no Critical or
+   Important concerns. Otherwise print the report. The agent never self-posts in
+   any other path — the workflow owns the single post.
