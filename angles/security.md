@@ -47,15 +47,16 @@ anything handling user/PII/PHI data. If none of these are touched, return
 - **Polish** — hardening nicety. Stance `ok`.
 
 **Proportionality evidence (non-Critical only).** Every **Important**/**Polish**
-finding MUST carry the attacker, the boundary the *change* opens, and its fix's
-rough cost (lines / new abstraction / new file) — collect this evidence; the
-**architect-led synthesis** is the single place that nets fix-cost across angles,
-reconciles conflicting fixes, and makes the final downgrade. Apply only your own
-*threat-exists?* cap here: a guard
-defending a door the baseline never opened (a threat the diff does not introduce)
-is not a real weakness — rank it **Polish** at most, never `concern`. None of
-this relaxes a **Critical**: a real, present Safety-floor issue still blocks
-regardless of fix cost.
+finding MUST name the attacker and the boundary the *change* opens (carry these
+alongside the evidence and concrete fix the Output section already requires). Do
+NOT model fix-cost or cost-vs-benefit here — you can't see the other angles'
+fixes, so that judgment isn't meaningful in an isolated lens. The
+**architect-led synthesis** measures each fix's cost, nets it across angles,
+reconciles conflicting fixes, and makes the final proportionality downgrade.
+Apply only your own *threat-exists?* cap: a guard defending a door the baseline
+never opened (a threat the diff does not introduce) is not a real weakness — rank
+it **Polish** at most, never `concern`. None of this relaxes a **Critical**: a
+real, present Safety-floor issue still blocks regardless of fix cost.
 
 ## Output
 
