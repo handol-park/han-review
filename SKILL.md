@@ -47,10 +47,13 @@ Simplicity > Efficiency. Authoritative definitions live in the consuming repo's
      plausible-but-wrong findings.
    - **Measure each finding's effect and its fix's cost.** Effect/benefit comes
      from the finding's `detail` (what's wrong and why it matters) plus the boundary
-     the change opens; cost comes from the concrete fix the finding proposes (the
-     code, abstraction, or files it adds). A finding may ground itself with only a
-     repro/check and no fix (`evidence` allows either) — then derive the minimal fix
-     that resolves it and cost *that*. Never downgrade for cost without a fix in hand.
+     the change opens; cost comes from the **owning angle's** proposed fix — the
+     domain expert's remedy (the code, abstraction, or files it adds). The architect
+     weighs and reconciles the experts' fixes but does NOT author a fix in a domain
+     it isn't expert in. If a finding arrives without its expert fix, don't invent
+     one: leave it at the angle's stated severity (no cost-based downgrade) and note
+     that the owning angle should propose a fix. Never downgrade for cost without an
+     expert fix in hand.
    - **Reconcile fix-vs-fix conflicts:** where two findings' fixes pull against each
      other (one angle's guard is another's unpaid-for complexity; one's abstraction
      breaks another's simplicity), resolve by the value ladder, naming the winner
