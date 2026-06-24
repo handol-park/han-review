@@ -19,6 +19,10 @@ Simplicity > Efficiency. Authoritative definitions live in the consuming repo's
 1. **Resolve the target.** Use the PR number if given; else the current branch's
    PR (`gh pr view --json number -q .number`); else review the working diff.
    Capture the diff with `gh pr diff <n>` (or `git diff <base>...HEAD`).
+   For a PR target, also capture the current head SHA, review decision, merge
+   state, status checks, unresolved review-thread count, and the latest prior
+   `han-review` / disposition comments. This state is process context, not a
+   substitute for reviewing the diff.
 
 2. **Dispatch dynamically.** Read the diff and seat only the angles whose surface
    it touches. You MAY summon an ad-hoc lens the diff demands (DB migration →
@@ -75,6 +79,14 @@ Simplicity > Efficiency. Authoritative definitions live in the consuming repo's
      a door the baseline never opened, or defense-in-depth whose cost exceeds the
      boundary it protects, MUST NOT reach `concern` (Polish at most). This NEVER
      touches a **Critical**: a real Safety-floor issue outranks Simplicity.
+   - **Iteration hygiene:** if this is a re-review of the same PR, compare findings
+     against prior `han-review` reports and the author's disposition comments. Do
+     not re-raise an accepted tradeoff, declined fix, or already-addressed finding
+     unless the current diff or new evidence invalidates that disposition. When a
+     finding is repeated, say what changed since the prior round or mark it as a
+     carry-forward rather than presenting it as new. Do not treat `mergeStateStatus:
+     CLEAN` as review closure; clean mergeability, review approval, status checks,
+     resolved threads, and an up-to-date PR body are separate states.
    - Rank Critical → Important → Polish.
 
 5. **Verdict.**
@@ -86,7 +98,11 @@ Simplicity > Efficiency. Authoritative definitions live in the consuming repo's
 6. **Render ONE report** — a section per seated angle (skipped angles noted as
    `_skipped — no governed surface changed_`; clean angles as `_no findings_`),
    findings as `` - `path:line` — title (Severity) `` then the detail + evidence,
-   ending with the verdict line and `_Reviewed <sha>._`.
+   ending with the verdict line and `_Reviewed <sha>._`. For PR targets, include a
+   short `Process state` note when relevant: stale PR body, missing checks,
+   unresolved threads, no approval, or remaining un-dispositioned concerns. This
+   note is not a code finding; it tells the caller what must be cleaned up before
+   the review process is closed.
 
 7. **Post (only in CI / when `--comment` is passed).** Write the report to a temp
    file and `gh pr comment <n> --body-file`. Otherwise print it. The agent never
