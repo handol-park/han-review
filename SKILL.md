@@ -36,14 +36,34 @@ Simplicity > Efficiency. Authoritative definitions live in the consuming repo's
      `codex exec` blocks waiting on stdin otherwise.
    An angle whose surface is untouched returns `applicable:false` and is dropped.
 
-4. **Synthesize (single context).**
+4. **Synthesize (single context — the architect's seat).** This is the only stage
+   that sees every angle's findings *and their proposed fixes* together, so it does
+   the big-picture reasoning no isolated angle can: measure each fix's effect,
+   reconcile fixes that conflict, and prefer one simpler solution over a stack of
+   per-finding patches.
    - Dedupe findings by `path:line`.
-   - **Adversarially cross-check:** if another angle's perspective refutes a
-     finding, drop it or downgrade it (mark `refuted`). This guards against
+   - **Is it wrong? (cross-check):** if another angle's perspective refutes a
+     finding, drop it or downgrade it (mark `refuted`). Guards against
      plausible-but-wrong findings.
-   - **Resolve real conflicts by the value ladder**, naming the winner and the
-     reason (e.g. architect "simpler" vs engineer "less correct" → Correctness
-     wins). Never surface both as equal.
+   - **Measure each finding's effect and its fix's cost.** Effect/benefit comes
+     from the finding's `detail` (what's wrong and why it matters) plus the boundary
+     the change opens; cost comes from the **owning angle's** proposed fix — the
+     domain expert's remedy (the code, abstraction, or files it adds). The architect
+     weighs and reconciles the experts' fixes but does NOT author a fix in a domain
+     it isn't expert in. If a finding arrives without its expert fix, don't invent
+     one: leave it at the angle's stated severity (no cost-based downgrade) and note
+     that the owning angle should propose a fix. Never downgrade for cost without an
+     expert fix in hand.
+   - **Reconcile fix-vs-fix conflicts:** where two findings' fixes pull against each
+     other (one angle's guard is another's unpaid-for complexity; one's abstraction
+     breaks another's simplicity), resolve by the value ladder, naming the winner
+     and the reason (e.g. Correctness over Simplicity). Never surface both as equal.
+   - **Prefer a simpler unifying solution:** when several findings share a root, or
+     a simpler structure would obviate them, propose that *one* change instead of
+     stacking per-finding fixes — and downgrade the findings it resolves. A guard for
+     a door the baseline never opened, or defense-in-depth whose cost exceeds the
+     boundary it protects, MUST NOT reach `concern` (Polish at most). This NEVER
+     touches a **Critical**: a real Safety-floor issue outranks Simplicity.
    - Rank Critical → Important → Polish.
 
 5. **Verdict.**

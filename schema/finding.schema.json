@@ -24,7 +24,7 @@
         "stance": { "enum": ["block", "concern", "ok"] },
         "title": { "type": "string", "description": "One-line headline." },
         "detail": { "type": "string", "description": "What's wrong and why it matters." },
-        "evidence": { "type": "string", "description": "A falsifiable check (repro/test/command) OR a concrete suggested fix. Findings without evidence are dropped." }
+        "evidence": { "type": "string", "description": "Grounding for the finding — a falsifiable check (repro/test/command) — and/or the angle's concrete proposed fix. For any actionable finding, include the proposed fix: it is the domain expert's remedy that the architect-led synthesis weighs for cost (synthesis must not author a fix outside its own expertise). At least one of check/fix is required; findings with neither are dropped." }
       }
     }
   }
