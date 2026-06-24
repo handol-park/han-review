@@ -44,13 +44,14 @@ Simplicity > Efficiency. Authoritative definitions live in the consuming repo's
    - **Resolve real conflicts by the value ladder**, naming the winner and the
      reason (e.g. architect "simpler" vs engineer "less correct" → Correctness
      wins). Never surface both as equal.
-   - **Proportionality pass (non-Critical only):** the cross-check above filters
-     findings that are *wrong*; this one filters findings that are *not worth it*.
-     For any Important/Polish finding whose *fix* adds code, a new abstraction, or
-     a new file, weigh that cost against the boundary the change actually opens. If
-     the same diff's architect lens flags the fix as unpaid-for complexity, or it
-     guards a door the baseline never opened, downgrade it to Polish/`ok`. Net an
-     "add a guard" finding against its own complexity cost — real-but-disproportionate
+   - **Proportionality pass (non-Critical only — the single downgrade point):** the
+     cross-check above filters findings that are *wrong*; this one filters findings
+     that are *not worth it*. For any Important/Polish finding whose *fix* adds code,
+     a new abstraction, or a new file, apply the architect lens's own "unpaid-for
+     complexity" test to that proposed fix and weigh its cost against the boundary
+     the change actually opens; if disproportionate — or it guards a door the
+     baseline never opened — downgrade it to Polish/`ok`. Net an "add a guard"
+     finding against its own complexity cost — real-but-disproportionate
      defense-in-depth MUST NOT reach `concern`. NEVER applies to Critical findings:
      a real Safety-floor issue outranks Simplicity and stays untouched.
    - Rank Critical → Important → Polish.
