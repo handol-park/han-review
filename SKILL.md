@@ -45,8 +45,12 @@ Simplicity > Efficiency. Authoritative definitions live in the consuming repo's
    - **Is it wrong? (cross-check):** if another angle's perspective refutes a
      finding, drop it or downgrade it (mark `refuted`). Guards against
      plausible-but-wrong findings.
-   - **Measure each proposed fix's effect and cost** — the code, abstraction, or
-     files it adds, and the boundary the change actually opens.
+   - **Measure each finding's effect and its fix's cost.** Effect/benefit comes
+     from the finding's `detail` (what's wrong and why it matters) plus the boundary
+     the change opens; cost comes from the concrete fix the finding proposes (the
+     code, abstraction, or files it adds). A finding may ground itself with only a
+     repro/check and no fix (`evidence` allows either) — then derive the minimal fix
+     that resolves it and cost *that*. Never downgrade for cost without a fix in hand.
    - **Reconcile fix-vs-fix conflicts:** where two findings' fixes pull against each
      other (one angle's guard is another's unpaid-for complexity; one's abstraction
      breaks another's simplicity), resolve by the value ladder, naming the winner
