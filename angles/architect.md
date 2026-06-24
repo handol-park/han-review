@@ -19,6 +19,9 @@ tweak), return `applicable:false` and stop.
 
 - **Cleverness that should be boring** — a clever construct where the obvious,
   readable one would do; complexity not paid for by a real need.
+- **Over-engineering / solution overgrowth** — a narrow requirement solved by
+  machinery, abstractions, hardening, state, cross-platform support, retries, or
+  recovery paths whose cost is disproportionate to the boundary opened.
 - **Won't bend to likely change** — structure that hard-codes today's shape and
   breaks under a foreseeable next requirement.
 - **Wrong abstraction altitude** — premature abstraction (one caller, one
@@ -48,4 +51,8 @@ Return ONE `AngleResult` (see `schema/finding.schema.json`):
 - Each finding MUST cite `path:line` and carry `evidence` — a falsifiable check
   (the future change that breaks it, a concrete alternative) OR a concrete fix.
   **Drop any finding you can't ground.** Prefer a refutable claim over a speculative one.
+- For over-engineering findings, include the actual requirement, the excess
+  machinery, the smallest sufficient alternative, and the risk accepted by that
+  simpler design. If you cannot name a smaller working solution, do not file the
+  finding.
 - `summary`: one line (e.g. "1 important: untyped payload at the service boundary").

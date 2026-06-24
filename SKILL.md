@@ -58,6 +58,14 @@ Simplicity > Efficiency. Authoritative definitions live in the consuming repo's
      other (one angle's guard is another's unpaid-for complexity; one's abstraction
      breaks another's simplicity), resolve by the value ladder, naming the winner
      and the reason (e.g. Correctness over Simplicity). Never surface both as equal.
+   - **Over-engineering check:** when a finding or proposed fix adds scheduling,
+     persistence, retries, locking, permissions hardening, abstraction,
+     cross-platform support, recovery logic, or other machinery, compare it to the
+     smallest design that satisfies the spec. If the extra machinery protects a
+     low-impact case, an accepted deviation, or a boundary the change does not
+     actually open, surface the simpler solution and mark the overgrowth as a
+     concern. Every over-engineering finding MUST name the smaller working
+     alternative and the risk it accepts.
    - **Prefer a simpler unifying solution:** when several findings share a root, or
      a simpler structure would obviate them, propose that *one* change instead of
      stacking per-finding fixes — and downgrade the findings it resolves. A guard for
