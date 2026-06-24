@@ -61,11 +61,14 @@ Simplicity > Efficiency. Authoritative definitions live in the consuming repo's
    - **Over-engineering check:** when a finding or proposed fix adds scheduling,
      persistence, retries, locking, permissions hardening, abstraction,
      cross-platform support, recovery logic, or other machinery, compare it to the
-     smallest design that satisfies the spec. If the extra machinery protects a
-     low-impact case, an accepted deviation, or a boundary the change does not
-     actually open, surface the simpler solution and mark the overgrowth as a
-     concern. Every over-engineering finding MUST name the smaller working
-     alternative and the risk it accepts.
+     smallest design that satisfies the governing spec, acceptance criteria, or the
+     change's stated intent. Machinery required by a real
+     Safety/reliability/security boundary is not over-engineering. Where extra
+     machinery guards a boundary the change does open but adds disproportionate
+     complexity, surface the simpler solution and rank the overgrowth by its
+     material cost. Where it guards a boundary the baseline never opened, the
+     Polish-at-most clamp below governs. Every over-engineering finding MUST name
+     the smaller working alternative and the risk it accepts.
    - **Prefer a simpler unifying solution:** when several findings share a root, or
      a simpler structure would obviate them, propose that *one* change instead of
      stacking per-finding fixes — and downgrade the findings it resolves. A guard for

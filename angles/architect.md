@@ -22,6 +22,9 @@ tweak), return `applicable:false` and stop.
 - **Over-engineering / solution overgrowth** — a narrow requirement solved by
   machinery, abstractions, hardening, state, cross-platform support, retries, or
   recovery paths whose cost is disproportionate to the boundary opened.
+  Do not flag Safety/reliability/security machinery as over-engineering when it is
+  required by the governing spec, acceptance criteria, or a real boundary opened by
+  the change. If a simpler design is safer, name that smaller compliant design.
 - **Won't bend to likely change** — structure that hard-codes today's shape and
   breaks under a foreseeable next requirement.
 - **Wrong abstraction altitude** — premature abstraction (one caller, one
