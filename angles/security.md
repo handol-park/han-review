@@ -49,8 +49,9 @@ anything handling user/PII/PHI data. If none of these are touched, return
 **Proportionality evidence (non-Critical only).** Every **Important**/**Polish**
 finding MUST carry the attacker, the boundary the *change* opens, and its fix's
 rough cost (lines / new abstraction / new file) — collect this evidence; the
-**consolidator** is the single place that nets fix-cost across angles and makes
-the final downgrade. Apply only your own *threat-exists?* cap here: a guard
+**architect-led synthesis** is the single place that nets fix-cost across angles,
+reconciles conflicting fixes, and makes the final downgrade. Apply only your own
+*threat-exists?* cap here: a guard
 defending a door the baseline never opened (a threat the diff does not introduce)
 is not a real weakness — rank it **Polish** at most, never `concern`. None of
 this relaxes a **Critical**: a real, present Safety-floor issue still blocks

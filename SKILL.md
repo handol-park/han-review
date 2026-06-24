@@ -36,24 +36,27 @@ Simplicity > Efficiency. Authoritative definitions live in the consuming repo's
      `codex exec` blocks waiting on stdin otherwise.
    An angle whose surface is untouched returns `applicable:false` and is dropped.
 
-4. **Synthesize (single context).**
+4. **Synthesize (single context — the architect's seat).** This is the only stage
+   that sees every angle's findings *and their proposed fixes* together, so it does
+   the big-picture reasoning no isolated angle can: measure each fix's effect,
+   reconcile fixes that conflict, and prefer one simpler solution over a stack of
+   per-finding patches.
    - Dedupe findings by `path:line`.
-   - **Adversarially cross-check:** if another angle's perspective refutes a
-     finding, drop it or downgrade it (mark `refuted`). This guards against
+   - **Is it wrong? (cross-check):** if another angle's perspective refutes a
+     finding, drop it or downgrade it (mark `refuted`). Guards against
      plausible-but-wrong findings.
-   - **Resolve real conflicts by the value ladder**, naming the winner and the
-     reason (e.g. architect "simpler" vs engineer "less correct" → Correctness
-     wins). Never surface both as equal.
-   - **Proportionality pass (non-Critical only — the single downgrade point):** the
-     cross-check above filters findings that are *wrong*; this one filters findings
-     that are *not worth it*. For any Important/Polish finding whose *fix* adds code,
-     a new abstraction, or a new file, apply the architect lens's own "unpaid-for
-     complexity" test to that proposed fix and weigh its cost against the boundary
-     the change actually opens; if disproportionate — or it guards a door the
-     baseline never opened — downgrade it to Polish/`ok`. Net an "add a guard"
-     finding against its own complexity cost — real-but-disproportionate
-     defense-in-depth MUST NOT reach `concern`. NEVER applies to Critical findings:
-     a real Safety-floor issue outranks Simplicity and stays untouched.
+   - **Measure each proposed fix's effect and cost** — the code, abstraction, or
+     files it adds, and the boundary the change actually opens.
+   - **Reconcile fix-vs-fix conflicts:** where two findings' fixes pull against each
+     other (one angle's guard is another's unpaid-for complexity; one's abstraction
+     breaks another's simplicity), resolve by the value ladder, naming the winner
+     and the reason (e.g. Correctness over Simplicity). Never surface both as equal.
+   - **Prefer a simpler unifying solution:** when several findings share a root, or
+     a simpler structure would obviate them, propose that *one* change instead of
+     stacking per-finding fixes — and downgrade the findings it resolves. A guard for
+     a door the baseline never opened, or defense-in-depth whose cost exceeds the
+     boundary it protects, MUST NOT reach `concern` (Polish at most). This NEVER
+     touches a **Critical**: a real Safety-floor issue outranks Simplicity.
    - Rank Critical → Important → Polish.
 
 5. **Verdict.**
