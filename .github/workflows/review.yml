@@ -127,7 +127,7 @@ jobs:
             Do NOT post anything and do NOT pass --comment. Put the complete markdown
             in the `review_markdown` field of your structured output.
           claude_args: |
-            --model claude-sonnet-4-6
+            --model sonnet
             --allowedTools "Task,Read,Grep,Glob,TodoWrite,Bash(gh pr diff:*),Bash(gh pr view:*),Bash(gh pr list:*),Bash(gh api:*),Bash(git diff:*),Bash(git log:*)"
             --json-schema '{"type":"object","additionalProperties":false,"required":["review_markdown"],"properties":{"review_markdown":{"type":"string"}}}'
       - name: Extract Claude review
