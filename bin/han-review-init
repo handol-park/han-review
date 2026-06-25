@@ -30,4 +30,4 @@ fi
 cp "$src" "$dest"
 echo "han-review-init: wrote $dest"
 echo "Next: ensure the repo has the backend secret(s), commit the stub to the"
-echo "default branch, then comment '@claude review' (or @codex/@gemini-cli) on a PR."
+echo "default branch, then comment '@claude /han-review' (or @codex/@gemini-cli) on a PR."
