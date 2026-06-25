@@ -128,5 +128,8 @@ Simplicity > Efficiency. Authoritative definitions live in the consuming repo's
    `gh pr review <n> --request-changes --body-file <file>` for **block** or
    **concerns** verdicts. Use `gh pr review <n> --approve --body-file <file>` for
    **ship it** verdicts, because that verdict means there are no Critical or
-   Important concerns. Otherwise print the report. The agent never self-posts in
-   any other path — the workflow owns the single post.
+   Important concerns. If GitHub rejects the review event (for example, the
+   reviewer is also the PR author or the token lacks review permission), fall
+   back to `gh pr comment <n> --body-file <file>` with the same report body so the
+   review is still recorded. Otherwise print the report. The agent never
+   self-posts in any other path — the workflow owns the single post.
